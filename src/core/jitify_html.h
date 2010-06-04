@@ -15,6 +15,7 @@ typedef struct {
   bool conditional_comment;
   bool space_contains_newlines;
   int nominify_depth;
+  jitify_token_type_t last_token_type;
 } jitify_html_state_t;
 
 #endif /* JITIFY_INTERNAL */

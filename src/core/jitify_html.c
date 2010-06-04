@@ -12,23 +12,14 @@ extern int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t leng
 
 static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf, size_t length, size_t starting_offset, const char *attr)
 {
-  bool modified = false;
-  /*
-  if (any link transforms enabled) {
-  
-  }
-  */
-  if (modified) {
-    return JITIFY_OK;  
-  }
-  else {
-    if (jitify_write(lexer->out, buf, length) < 0) {
-       return JITIFY_ERROR;
-     }
-     else {
-       return JITIFY_OK;
-     } 
-  }
+  jitify_html_state_t *state = lexer->state;
+  state->last_token_type = lexer->token_type;
+  if (jitify_write(lexer->out, buf, length) < 0) {
+     return JITIFY_ERROR;
+   }
+   else {
+     return JITIFY_OK;
+   } 
 }
 
 static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, size_t length, size_t starting_offset)
@@ -64,6 +55,14 @@ static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, s
       return JITIFY_OK;
     }
   }
+  else if (lexer->token_type == jitify_type_css_term) {
+    if (lexer->remove_space && (state->last_token_type == jitify_type_css_term)) {
+      /* The space we just skipped was actually necessary, so add a space back in */
+      if (jitify_write(lexer->out, " ", 1) < 0) {
+        return JITIFY_ERROR;
+      }
+    }
+  }
   else if (lexer->token_type == jitify_type_html_img_open) {
     return html_tag_transform(lexer, buf, length, starting_offset, "src");
   }
@@ -74,6 +73,7 @@ static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, s
     return html_tag_transform(lexer, buf, length, starting_offset, "src");
   }
   
+  state->last_token_type = lexer->token_type;
   if (jitify_write(lexer->out, buf, length) < 0) {
     return JITIFY_ERROR;
   }

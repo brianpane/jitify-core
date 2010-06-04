@@ -19,6 +19,7 @@ int jitify_css_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool
 {
   const char *p = data, *pe = data + length;
   const char *eof = is_eof ? pe : NULL;
+  jitify_css_state_t *state = lexer->state;
   if (!lexer->initialized) {
     %% write init;
     lexer->initialized = true;

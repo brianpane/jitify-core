@@ -84,6 +84,14 @@
     '/'
   ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
 
+  open_paren = (
+    '('
+  ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
+
+  close_paren = (
+    ')'
+  ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
+  
   open_curly_brace = (
     '{'
   ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
@@ -142,9 +150,11 @@
     _single_quoted | _double_quoted | _misc_term
   ) >{ TOKEN_START(jitify_type_css_term); } %{ TOKEN_END; };
   
-  function_arg = ( unquoted_uri | double_quoted_uri | single_quoted_uri ) space*;
+  function_arg = ( _single_quoted | _double_quoted | _misc_term )
+    >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; } optional_space_or_comment?;
   
-  function_args = '(' space* ( function_arg ( space* ',' function_arg )* space* ) :>> ')';
+  function_args = open_paren optional_space_or_comment?
+    ( function_arg  (comma optional_space_or_comment? function_arg)* )? close_paren %{ state->last_token_type = jitify_type_css_term; };
   
   term = base_term optional_space_or_comment? (function_args optional_space_or_comment?)?;
 
