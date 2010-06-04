@@ -128,14 +128,14 @@
     ( ( any - ( space | '"' | "'" | ')' | ',' ) )  ( any - ( space | ')' | ',' ) )* )
     ) >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; };
 
-  _misc_term = ( any - ( space | '(' | ')' | ';' | '}' | '"' | "'" | ',' | '/' ) )+;
+  _misc_term = ( any - ( space | '(' | ')' | ';' | '}' | '"' | "'" | ',' | '*' ) )+;
     
   base_term = (
     _single_quoted | _double_quoted | _misc_term
   ) >{ TOKEN_START(jitify_type_css_term); } %{ TOKEN_END; };
   
   function_arg = ( _single_quoted | _double_quoted | _misc_term )
-    >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; } optional_space_or_comment?;
+    >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; } <: optional_space_or_comment?;
   
   function_args = open_paren optional_space_or_comment?
     ( function_arg  (comma optional_space_or_comment? function_arg)* )? close_paren %{ state->last_token_type = jitify_type_css_term; };
