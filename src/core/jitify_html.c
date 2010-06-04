@@ -55,8 +55,8 @@ static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, s
       return JITIFY_OK;
     }
   }
-  else if (lexer->token_type == jitify_type_css_term) {
-    if (lexer->remove_space && (state->last_token_type == jitify_type_css_term)) {
+  else if ((lexer->token_type == jitify_type_css_selector) || (lexer->token_type == jitify_type_css_term)) {
+    if (lexer->remove_space && (state->last_token_type == lexer->token_type)) {
       /* The space we just skipped was actually necessary, so add a space back in */
       if (jitify_write(lexer->out, " ", 1) < 0) {
         return JITIFY_ERROR;

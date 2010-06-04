@@ -5,6 +5,7 @@
 
 #ifdef JITIFY_INTERNAL
 
+extern jitify_token_type_t jitify_type_css_selector;
 extern jitify_token_type_t jitify_type_css_term;
 extern jitify_token_type_t jitify_type_css_comment;
 extern jitify_token_type_t jitify_type_css_optional_whitespace;

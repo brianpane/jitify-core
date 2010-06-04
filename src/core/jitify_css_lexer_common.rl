@@ -66,15 +66,7 @@
     ( (_ident | '*') (_hash | _css_class | _attrib | _pseudo)* )
     |
     (_hash | _css_class | _attrib | _pseudo)+
-  ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
-
-  selector = (
-    simple_selector ( combinator optional_space_or_comment? simple_selector )*
-  );
-
-  selectors = (
-    selector ( css_comment? required_space ( css_comment optional_space? )* selector )*
-  );
+  ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_TYPE(jitify_type_css_selector); TOKEN_END; };
 
   comma = (
     ','
@@ -124,14 +116,6 @@
     exclamation_point optional_space_or_comment? important
   );
 
-  unary_operator = (
-    '-' | '+'
-  ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
-
-  operator = (
-    (comma | slash) optional_space?
-  );
-
   single_quoted_uri = "'" @{ ATTR_SET_QUOTE('\''); }
   ( [^'\\] | /\\./)* >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; }
   "'";
@@ -164,8 +148,8 @@
   );
 
   ruleset = (
-    selector ( required_space selector )** ( optional_space? comma optional_space? selectors )*
-    optional_space_or_comment? open_curly_brace
+    simple_selector <: optional_space_or_comment? ( (simple_selector|combinator|comma) optional_space_or_comment? )**
+    open_curly_brace
     optional_space_or_comment? declaration? ( semicolon optional_space_or_comment? declaration? )*
     close_curly_brace
   );
