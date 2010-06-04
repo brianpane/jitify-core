@@ -99,12 +99,19 @@
   
   misc_tag = '/'? name >{ TOKEN_TYPE(jitify_token_type_misc); } (space+ unparsed_attr)* tag_close;
 
+  _xml_tag_close = '?>';
+  
+  xml_tag = ( '?' (any* - _xml_tag_close) :>> _xml_tag_close )
+    >{ TOKEN_TYPE(jitify_token_type_misc); };
+    
   element = (
     script
     |
     img
     |
     preformatted_open | preformatted_close
+    |
+    xml_tag
     |
     link
     |
