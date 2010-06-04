@@ -113,7 +113,7 @@
   ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
 
   priority = (
-    exclamation_point optional_space? important
+    exclamation_point optional_space_or_comment? important
   );
 
   unary_operator = (
@@ -136,26 +136,26 @@
     ( ( any - ( space | '"' | "'" | ')' | ',' ) )  ( any - ( space | ')' | ',' ) )* )
     ) >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; };
 
-  _misc_term = ( any - ( space | '(' | ')' | ';' | '}' | '"' | "'" | ',' ) )+;
-  
-  base_term = ( 'url' %{ TOKEN_END; TOKEN_START(jitify_type_css_url); ATTR_SET_QUOTE(0); } ) |
-              ( _single_quoted | _double_quoted | _misc_term )+;
+  _misc_term = ( any - ( space | '(' | ')' | ';' | '}' | '"' | "'" | ',' | '/' ) )+;
+    
+  base_term = (
+    _single_quoted | _double_quoted | _misc_term
+  ) >{ TOKEN_START(jitify_type_css_term); } %{ TOKEN_END; };
   
   function_arg = ( unquoted_uri | double_quoted_uri | single_quoted_uri ) space*;
   
   function_args = '(' space* ( function_arg ( space* ',' function_arg )* space* ) :>> ')';
   
-  #term = ( base_term function_args? ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; if (jctx->subrequest_uri != NULL) { p--; fbreak; } };
-  term = ( base_term function_args? ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
+  term = base_term optional_space_or_comment? (function_args optional_space_or_comment?)?;
 
   declaration = (
-    property optional_space? colon optional_space? term
-     ( ( required_space | (optional_space? comma optional_space?))  operator? term)* optional_space? (priority optional_space?)?
+    property optional_space_or_comment? colon optional_space_or_comment? term <: ((comma optional_space_or_comment?)? term)**
+    (priority optional_space_or_comment?)?
   );
 
   ruleset = (
     selector ( required_space selector )** ( optional_space? comma optional_space? selectors )*
-    optional_space? open_curly_brace
+    optional_space_or_comment? open_curly_brace
     optional_space_or_comment? declaration? ( semicolon optional_space_or_comment? declaration? )*
     close_curly_brace
   );
