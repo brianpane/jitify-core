@@ -1,0 +1,10 @@
+.*
+*.o
+*.lo
+*.so
+*.la
+*.slo
+*.a
+!.gitignore
+build
+jitify_*_lexer.c
