@@ -166,6 +166,11 @@
     any - '{'
   )** >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
   
+  css_import = (
+    ( '@' /import/i ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; }
+    required_space term semicolon
+  );
+  
   media = (
     ( '@' /media/i ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; }
     required_space
@@ -181,7 +186,8 @@
     optional_space_or_comment |
     html_close_comment |
     html_open_comment |
-    ruleset
+    ruleset |
+    css_import
 #    media
   )** >{ TOKEN_START(jitify_token_type_misc); };
 
