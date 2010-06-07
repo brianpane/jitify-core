@@ -27,13 +27,13 @@ static jitify_status_t css_transform(jitify_lexer_t *lexer, const void *data, si
   else if ((lexer->token_type == jitify_type_css_selector) || (lexer->token_type == jitify_type_css_term)) {
     if (lexer->remove_space && (state->last_token_type == lexer->token_type)) {
       /* The space we just skipped was actually necessary, so add a space back in */
-      if (jitify_write(lexer->out, " ", 1) < 0) {
+      if (jitify_write(lexer, " ", 1) < 0) {
         return JITIFY_ERROR;
       }
     }
   }
   state->last_token_type = lexer->token_type;
-  if (jitify_write(lexer->out, data, length) < 0) {
+  if (jitify_write(lexer, data, length) < 0) {
     return JITIFY_ERROR;
   }
   else {

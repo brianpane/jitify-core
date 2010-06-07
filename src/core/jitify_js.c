@@ -52,7 +52,7 @@ static jitify_status_t js_transform(jitify_lexer_t *lexer, const void *data, siz
         break;
       }
     }
-    if (jitify_write(lexer->out, buf, length) < 0) {
+    if (jitify_write(lexer, buf, length) < 0) {
       return JITIFY_ERROR;
     }
     else {
@@ -98,7 +98,7 @@ static jitify_status_t js_transform(jitify_lexer_t *lexer, const void *data, siz
   else {
     if (state->pending == '\n') {
       if (is_ident_char(*buf) || (*buf == '{') || (*buf == '[') || (*buf == '(') || (*buf == '+') || (*buf == '-')) {
-        if (jitify_write(lexer->out, &(state->pending), 1) < 0) {
+        if (jitify_write(lexer, &(state->pending), 1) < 0) {
           return JITIFY_ERROR;
         }
         state->last_written = state->pending;
@@ -107,14 +107,14 @@ static jitify_status_t js_transform(jitify_lexer_t *lexer, const void *data, siz
     }
     else if (state->pending == ' ') {
       if (is_ident_char(*buf)) {
-        if (jitify_write(lexer->out, &(state->pending), 1) < 0) {
+        if (jitify_write(lexer, &(state->pending), 1) < 0) {
           return JITIFY_ERROR;
         }
       }
       state->pending = 0;
     }
     state->last_written = buf[length - 1];
-    if (jitify_write(lexer->out, buf, length) < 0) {
+    if (jitify_write(lexer, buf, length) < 0) {
       return JITIFY_ERROR;
     }
     else {

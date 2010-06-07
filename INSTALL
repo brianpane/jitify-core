@@ -1,0 +1,30 @@
+Sorry, there isn't a configure script for jitify-core yet.
+
+There are two targets you can build from jitify-core:
+  1. Jitify Tools, the command-line application
+  2. Jitify for Apache, the module for Apache 2.2
+
+To build Jitify Tools:
+  1. cd to the root of the jitify-core source distribution
+  2. make tools
+  3. The Jitify Tools executable is now at build/jitify
+  4. cp build/jitify /wherever/you/want/to/put/it
+
+To build Jitify for Apache:
+  1. cd to the root of the jitify-core source distribution
+  2. Open the Makefile in your text editor of choice, and
+     CHANGE the APACHE_HOME declaration at the top to point
+     to the base directory of your Apache installation.  The
+     Makefile looks for Apache's apxs build tool under
+     $APACHE_HOME/bin
+  3. make apache
+  4. The Jitify for Apache dynamically loadable module is
+     now at build/mod_jitify.so
+  5. cp build/mod_jitify.so /wherever-your-apache-installation-is/modules
+  6. Add these line to your Apache httpd.conf:
+       LoadModule jitify_module modules/mod_jitify.so
+       <IfModule jitify_module>
+         # Enable the minification transform
+         Minify On
+       </IfModule>
+  7. Restart Apache

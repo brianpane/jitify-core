@@ -45,8 +45,6 @@ extern void jitify_array_destroy(jitify_array_t *array);
 
 typedef struct jitify_output_stream_s jitify_output_stream_t;
 
-extern int jitify_write(jitify_output_stream_t *stream, const void *data, size_t length);
-
 extern void jitify_output_stream_destroy(jitify_output_stream_t *stream);
 
 extern jitify_output_stream_t *jitify_stdio_output_stream_create(jitify_pool_t *pool, FILE *out);
@@ -76,6 +74,8 @@ extern size_t jitify_lexer_get_bytes_out(jitify_lexer_t *lexer);
 extern size_t jitify_lexer_get_processing_time(jitify_lexer_t *lexer);
 
 extern const char *jitify_lexer_get_err(jitify_lexer_t *lexer);
+
+extern int jitify_write(jitify_lexer_t *lexer, const void *data, size_t length);
 
 /**
  * @return number of bytes scanned, or a negative number if an unrecoverable error occurs

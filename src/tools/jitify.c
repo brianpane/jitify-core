@@ -56,7 +56,7 @@ static void process_file(int fd)
   jitify_output_stream_t *out = jitify_stdio_output_stream_create(p, stdout);
   jitify_lexer_t *lexer;
   int bytes_read;
-  size_t length, duration;
+  size_t bytes_in, bytes_out, duration;
   
   char *block;
   
@@ -101,11 +101,12 @@ static void process_file(int fd)
   if (bytes_read == 0) {
     jitify_lexer_scan(lexer, "NULL", 0, true);
   }
-  length = jitify_lexer_get_bytes_in(lexer);
+  bytes_in = jitify_lexer_get_bytes_in(lexer);
+  bytes_out = jitify_lexer_get_bytes_out(lexer);
   duration = jitify_lexer_get_processing_time(lexer);
-  if (length) {
-    fprintf(stderr, "%ld bytes in %ld usec (%ld nsec/byte)\n", (long)length,
-      (long)duration, (1000 * duration)/length);
+  if (bytes_in) {
+    fprintf(stderr, "%lu bytes in, %lu bytes out, %lu usec (%lu nsec/byte)\n",
+      bytes_in, bytes_out, duration, (1000 * duration)/bytes_in);
   }
   
   jitify_free(p, block);

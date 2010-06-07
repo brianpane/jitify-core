@@ -1,7 +1,9 @@
-# Locations of programs used during the build
-RAGEL=ragel
+# Edit the definition of APACHE_HOME to point to the base of your Apache installation
 APACHE_HOME=$(HOME)/local/apache-2.2
+
+# Locations of programs needed during compilation
 APXS=$(APACHE_HOME)/bin/apxs
+RAGEL=ragel
 
 CFLAGS=-g -O3 -Werror -Wall
 APXS_CFLAGS=-Wc,"$(CFLAGS)"
@@ -45,40 +47,30 @@ all:
 	@echo
 
 build-prep:
-	@mkdir -p build/dist build/core build/tools
-
-libs:	build-prep $(STATIC_LIB) build/dist/jitify.h
-
-$(STATIC_LIB):	build-prep $(LIB_OBJS)
-	ar -r $@ $(LIB_OBJS)
-
-build/dist/jitify.h:	src/core/jitify.h
-	cp -f $< $@
+	@mkdir -p build/core build/tools
 
 ragel:
 	$(RAGEL) $(RAGELFLAGS) -o src/core/jitify_css_lexer.c  src/core/jitify_css_lexer.rl
 	$(RAGEL) $(RAGELFLAGS) -o src/core/jitify_html_lexer.c  src/core/jitify_html_lexer.rl
 	$(RAGEL) $(RAGELFLAGS) -o src/core/jitify_js_lexer.c   src/core/jitify_js_lexer.rl
 
-TOOL_TARGETS=build/dist/jitify
+TOOL_TARGETS=build/jitify
 TOOL_OBJS=$(CORE_OBJS) build/tools/jitify.o
 
 tools:	$(TOOL_TARGETS)
 
-build/dist/jitify:	build-prep $(TOOL_OBJS) 
+build/jitify:	build-prep $(TOOL_OBJS) 
 	$(CC) -o $@ $(TOOL_OBJS)
 
-APACHE_TARGETS=build/dist/mod_jitify.so
+APACHE_TARGETS=build/mod_jitify.so
 APACHE_SRCS=$(CORE_SRCS) src/apache/mod_jitify.c src/apache/jitify_apache_glue.c
 apache:	build-prep $(APACHE_TARGETS)
 
-build/dist/mod_jitify.so:	$(APACHE_SRCS)
+build/mod_jitify.so:	$(APACHE_SRCS)
 	$(APXS) -c -Wc,-g -Wc,-O3 -Wc,-Werror -Wc,-Wall -o $@ -Isrc/core $(APACHE_SRCS)
+	cp -f build/.libs/mod_jitify.so build
 
 clean:
 	-rm -rf build/*
 	-find src -name '*.o' -o -name '*.lo' -o -name '*.slo' -exec rm -f {} \;
 	-find src -name '.libs' -exec rm -rf {} \;
-
-
-
