@@ -191,12 +191,18 @@
     close_curly_brace
   );
   
+  css_charset = (
+    ( '@' /charset/i ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; }
+    required_space (base_term optional_space_or_comment?)** semicolon
+  );
+  
   css_document = (
     optional_space_or_comment |
     html_close_comment |
     html_open_comment |
     ruleset |
-    css_import
+    css_import |
+    css_charset
 #    media
   )** >{ TOKEN_START(jitify_token_type_misc); };
 
