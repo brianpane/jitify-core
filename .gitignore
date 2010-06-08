@@ -6,4 +6,5 @@
 *.slo
 *.a
 !.gitignore
+jitify_*_lexer.c
 build
