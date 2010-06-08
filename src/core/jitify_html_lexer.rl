@@ -36,7 +36,7 @@
     alpha (alnum | '-' | '_' | ':')*
   ) >{ ATTR_KEY_START; } %{ ATTR_KEY_END; };
 
-  unquoted_attr_value = name_char+
+  unquoted_attr_value = ( any - ( space | '>' | '\\' | '"' | "'" ) )+
     >{ ATTR_VALUE_START; ATTR_SET_QUOTE(0); } %{ ATTR_VALUE_END; };
   
   single_quoted_attr_value = "'" @{ ATTR_SET_QUOTE('\''); }
@@ -55,8 +55,6 @@
   
   attr = (
     (attr_name space* '=' space* attr_value)
-    |
-    (attr_value)
   );
 
   unparsed_attr_name = (
@@ -64,21 +62,19 @@
   );
 
   unparsed_attr_value = (
-    name_char+ |
+    ( any - ( space | '>' | '\\' | '"' | "'" ) )+ |
     "'" /[^']*/ "'" |
     '"' /[^"]*/ '"'
   );
 
   unparsed_attr = (
-    (unparsed_attr_name space* '=' space* unparsed_attr_value)
-    |
-    (unparsed_attr_value)
+    unparsed_attr_name space* ('=' space* unparsed_attr_value)?
   );
 
   preformatted_close = '</' /(pre|textarea)/i '>' @{ state->nominify_depth--; };
   
   preformatted_open= (/pre/i | /textarea/i) @{ state->nominify_depth++; }
-    (space+ unparsed_attr)* tag_close;
+    (space+ unparsed_attr)* space* tag_close;
   
   script_close = '</' /script/i '>';
 
