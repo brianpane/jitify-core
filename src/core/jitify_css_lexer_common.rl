@@ -143,8 +143,10 @@
   function_arg = ( _single_quoted | _double_quoted | _misc_function_arg )
     >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; } <: optional_space_or_comment?;
   
+  arg_delimiter = ( ',' | '=' | '<' | '>' | '?' | ':' ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
+  
   function_args = open_paren optional_space_or_comment?
-    ( function_arg  ((comma|equals) optional_space_or_comment? function_arg)* )?
+    ( function_arg  (arg_delimiter optional_space_or_comment? function_arg)* )?
     close_paren %{ state->last_token_type = jitify_type_css_term; };
   
   term = base_term optional_space_or_comment? (function_args optional_space_or_comment?)?;
