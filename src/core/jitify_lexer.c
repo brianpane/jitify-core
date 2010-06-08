@@ -209,6 +209,13 @@ void jitify_transform_with_setaside(jitify_lexer_t *lexer, const char *p)
   lexer->setaside_len = 0;
 }
 
+void jitify_err_checkpoint(jitify_lexer_t *lexer)
+{
+  /* Do nothing -- this function exists solely as a
+     convenient place to put a debugger breakpoint
+   */
+}
+
 #define INITIAL_ARRAY_SIZE 1
 
 void jitify_lexer_add_cdnify_rule(jitify_lexer_t *lexer, const char *prefix, const char *replacement)

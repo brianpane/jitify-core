@@ -8,6 +8,7 @@
     TOKEN_END;
     lexer->err = p;
     lexer->failsafe_mode = true;
+    jitify_err_checkpoint(lexer);
     p--;
     fbreak;
   }

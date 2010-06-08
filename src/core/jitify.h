@@ -101,6 +101,8 @@ struct jitify_output_stream_s {
   void (*cleanup)(jitify_output_stream_t *stream);
 };
 
+extern void jitify_err_checkpoint(jitify_lexer_t *lexer);
+
 #endif /* JITIFY_INTERNAL */
 
 #endif /* !defined(jitify_h) */
