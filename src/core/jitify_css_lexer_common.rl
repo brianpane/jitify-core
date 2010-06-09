@@ -182,12 +182,13 @@
   
   media = (
     ( '@' /media/i ) >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; }
+    css_comment?
     required_space
+    (css_comment optional_space?)*
     media_list :>>
     open_curly_brace
-    optional_space?
-    ruleset*
-    optional_space?
+    optional_space_or_comment?
+    (ruleset optional_space_or_comment?)*
     close_curly_brace
   );
   
@@ -202,8 +203,8 @@
     html_open_comment |
     ruleset |
     css_import |
-    css_charset
-#    media
+    css_charset |
+    media
   )** >{ TOKEN_START(jitify_token_type_misc); };
 
 }%%
