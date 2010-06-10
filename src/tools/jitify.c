@@ -107,7 +107,8 @@ static void process_file(int fd)
   duration = jitify_lexer_get_processing_time(lexer);
   if (bytes_in) {
     fprintf(stderr, "%lu bytes in, %lu bytes out, %lu usec (%lu nsec/byte)\n",
-      bytes_in, bytes_out, duration, (1000 * duration)/bytes_in);
+      (unsigned long)bytes_in, (unsigned long)bytes_out, (unsigned long)duration,
+      (unsigned long)((1000 * duration)/bytes_in));
   }
   
   jitify_free(p, block);

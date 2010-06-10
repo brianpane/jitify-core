@@ -116,7 +116,9 @@ static apr_status_t jitify_filter(ap_filter_t *f, apr_bucket_brigade *bb)
       size_t bytes_in = jitify_lexer_get_bytes_in(ctx->lexer);
       size_t bytes_out = jitify_lexer_get_bytes_out(ctx->lexer);
       ap_log_rerror(APLOG_MARK, APLOG_INFO, 0, f->r, "Jitify stats: bytes_in=%lu bytes_out=%lu, nsec/byte=%lu for %s",
-        bytes_in, bytes_out, bytes_in ? processing_time_in_usec * 1000 / bytes_in : 0, f->r->uri);
+        (unsigned long)bytes_in, (unsigned long)bytes_out,
+        (unsigned long)(bytes_in ? processing_time_in_usec * 1000 / bytes_in : 0),
+        f->r->uri);
       jitify_lexer_scan(ctx->lexer, NULL, 0, true);
       APR_BRIGADE_INSERT_TAIL(out, b);
     }
