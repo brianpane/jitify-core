@@ -29,12 +29,23 @@ typedef struct {
   jitify_output_stream_t *out;
 } jitify_filter_ctx_t;
 
+static request_rec *main_request(request_rec *r)
+{
+  if (r && r->main) {
+    return r->main;
+  }
+  else {
+    return r;
+  }
+}
+
 static jitify_filter_ctx_t *jitify_filter_init(ap_filter_t *f)
 {
   jitify_pool_t *pool = jitify_apache_pool_create(f->r->pool);
   jitify_filter_ctx_t *ctx = jitify_calloc(pool, sizeof(*ctx));
   jitify_dir_conf_t *jconf = ap_get_module_config(f->r->per_dir_config, &jitify_module);
-  jitify_request_ctx_t *jctx = (jitify_request_ctx_t *)apr_table_get(f->r->notes, JITIFY_NOTE_KEY);
+  request_rec *r_main;
+  jitify_request_ctx_t *jctx;
   ctx->pool = pool;
   if (jconf->minify > 0) {
     jitify_output_stream_t *out = jitify_apache_output_stream_create(pool);
@@ -51,9 +62,15 @@ static jitify_filter_ctx_t *jitify_filter_init(ap_filter_t *f)
   else {
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "no transforms enabled for %s, skipping lexer", f->r->uri);
   }
+  r_main = main_request(f->r);
+  jctx = (jitify_request_ctx_t *)apr_table_get(r_main->notes, JITIFY_NOTE_KEY);
   if (jctx && jctx->orig_accept_encoding) {
-    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "Restoring Accept-Encoding");
-    apr_table_setn(f->r->headers_in, "Accept-Encoding", jctx->orig_accept_encoding);
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r_main, "Restoring Accept-Encoding for %s", r_main->uri);
+    apr_table_setn(r_main->headers_in, "Accept-Encoding", jctx->orig_accept_encoding);
+  }
+  else {
+    ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "Not restoring Accept-Encoding because %s for %s",
+      (jctx == NULL) ? "there is no request context"  : "original Accept-Encoding was NULL", r_main->uri);
   }
   return ctx;
 }
@@ -138,20 +155,22 @@ static apr_status_t jitify_filter(ap_filter_t *f, apr_bucket_brigade *bb)
 static int jitify_translate_name(request_rec *r)
 {
   jitify_dir_conf_t *jconf;
+  request_rec *r_main;
   ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "In jitify_translate_name for %s", r->uri);
-  jconf = ap_get_module_config(r->per_dir_config, &jitify_module);
+  r_main = main_request(r);
+  jconf = ap_get_module_config(r_main->per_dir_config, &jitify_module);
   if (jconf && (jconf->minify > 0)) {
     jitify_request_ctx_t *jctx;
     ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "Preparing request for Jitify processing");
-    jctx = (jitify_request_ctx_t *)apr_table_get(r->notes, JITIFY_NOTE_KEY);
+    jctx = (jitify_request_ctx_t *)apr_table_get(r_main->notes, JITIFY_NOTE_KEY);
     if (!jctx) {
-      jctx = apr_pcalloc(r->pool, sizeof(*jctx));
-      apr_table_setn(r->notes, JITIFY_NOTE_KEY, (void *)jctx);
-    }
-    jctx->orig_accept_encoding = apr_table_get(r->headers_in, "Accept-Encoding");
-    if (jctx->orig_accept_encoding) {
-      ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "Hiding Accept-Encoding until output filter");
-      apr_table_unset(r->headers_in, "Accept-Encoding");
+      jctx = apr_pcalloc(r_main->pool, sizeof(*jctx));
+      apr_table_setn(r_main->notes, JITIFY_NOTE_KEY, (void *)jctx);
+      jctx->orig_accept_encoding = apr_table_get(r_main->headers_in, "Accept-Encoding");
+      if (jctx->orig_accept_encoding) {
+        ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, r, "Hiding Accept-Encoding until output filter for %s", r_main->uri);
+        apr_table_unset(r_main->headers_in, "Accept-Encoding");
+      }
     }
   }
   return DECLINED;
