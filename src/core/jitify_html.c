@@ -1,7 +1,9 @@
+#include <string.h>
 #define JITIFY_INTERNAL
 #include "jitify_css.h"
 #include "jitify_html.h"
 
+jitify_token_type_t jitify_type_html_anchor_open = "HTML anchor";
 jitify_token_type_t jitify_type_html_comment = "HTML comment";
 jitify_token_type_t jitify_type_html_img_open = "HTML img";
 jitify_token_type_t jitify_type_html_link_open = "HTML link";
@@ -10,10 +12,34 @@ jitify_token_type_t jitify_type_html_space = "HTML space";
 
 extern int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof);
 
-static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf, size_t length, size_t starting_offset, const char *attr)
+static jitify_attr_t *get_attr_by_name(jitify_lexer_t *lexer, const char *buf, size_t starting_offset, const char *name)
+{
+  size_t name_len;
+  size_t i, num_attrs;
+  if (!lexer->attrs) {
+    return NULL;
+  }
+  num_attrs = jitify_array_length(lexer->attrs);
+  name_len = strlen(name);
+  for (i = 0; i < num_attrs; i++) {
+    jitify_attr_t *attr = jitify_array_get(lexer->attrs, i);
+    if (attr && (attr->key.len == name_len) &&
+        !strncasecmp(name, buf + attr->key.offset - starting_offset, name_len)) {
+      return attr;
+    }
+  }
+  return NULL;
+}
+
+static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf, size_t length,
+  size_t starting_offset, const char *attr_name)
 {
   jitify_html_state_t *state = lexer->state;
   state->last_token_type = lexer->token_type;
+  jitify_attr_t *attr = get_attr_by_name(lexer, buf, starting_offset, attr_name);
+  if (attr) {
+    /* This is where URI rewriting will go */
+  }
   if (jitify_write(lexer, buf, length) < 0) {
      return JITIFY_ERROR;
    }
@@ -62,6 +88,9 @@ static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, s
         return JITIFY_ERROR;
       }
     }
+  }
+  else if (lexer->token_type == jitify_type_html_anchor_open) {
+    return html_tag_transform(lexer, buf, length, starting_offset, "href");
   }
   else if (lexer->token_type == jitify_type_html_img_open) {
     return html_tag_transform(lexer, buf, length, starting_offset, "src");

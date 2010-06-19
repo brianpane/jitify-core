@@ -5,6 +5,7 @@
 
 #ifdef JITIFY_INTERNAL
 
+extern jitify_token_type_t jitify_type_html_anchor_open;
 extern jitify_token_type_t jitify_type_html_comment;
 extern jitify_token_type_t jitify_type_html_img_open;
 extern jitify_token_type_t jitify_type_html_link_open;

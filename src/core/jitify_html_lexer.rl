@@ -84,6 +84,8 @@
       (any* - ( any* script_close any* ) ) script_close
   );
 
+  anchor = /a/i %{ TOKEN_TYPE(jitify_type_html_anchor_open); } (space+ attr)* tag_close;
+  
   img = /img/i %{ TOKEN_TYPE(jitify_type_html_img_open); } (space+ attr)* tag_close;
 
   link = /link/i %{ TOKEN_TYPE(jitify_type_html_link_open); } (space+ attr)* tag_close;
@@ -102,6 +104,8 @@
     
   element = (
     script
+    |
+    anchor
     |
     img
     |
