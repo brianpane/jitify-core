@@ -209,6 +209,29 @@ void jitify_transform_with_setaside(jitify_lexer_t *lexer, const char *p)
   lexer->setaside_len = 0;
 }
 
+void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, size_t starting_offset)
+{
+  size_t i, num_attrs;
+  if (!lexer || lexer->attrs_resolved) {
+    return;
+  }
+  if (!lexer->attrs) {
+    lexer->attrs_resolved = true;
+    return;
+  }
+  num_attrs = jitify_array_length(lexer->attrs);
+  for (i = 0; i < num_attrs; i++) {
+    jitify_attr_t *attr = jitify_array_get(lexer->attrs, i);
+    if (attr->key.len) {
+      attr->key.data.buf = buf + attr->key.data.offset - starting_offset;
+    }
+    if (attr->value.len) {
+      attr->value.data.buf = buf + attr->value.data.offset - starting_offset;
+    }
+  }
+  lexer->attrs_resolved = true;
+}
+
 void jitify_err_checkpoint(jitify_lexer_t *lexer)
 {
   /* Do nothing -- this function exists solely as a

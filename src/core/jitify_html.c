@@ -9,43 +9,69 @@ jitify_token_type_t jitify_type_html_img_open = "HTML img";
 jitify_token_type_t jitify_type_html_link_open = "HTML link";
 jitify_token_type_t jitify_type_html_script_open = "HTML script";
 jitify_token_type_t jitify_type_html_space = "HTML space";
+jitify_token_type_t jitify_type_html_tag = "HTML tag";
 
 extern int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof);
-
-static jitify_attr_t *get_attr_by_name(jitify_lexer_t *lexer, const char *buf, size_t starting_offset, const char *name)
-{
-  size_t name_len;
-  size_t i, num_attrs;
-  if (!lexer->attrs) {
-    return NULL;
-  }
-  num_attrs = jitify_array_length(lexer->attrs);
-  name_len = strlen(name);
-  for (i = 0; i < num_attrs; i++) {
-    jitify_attr_t *attr = jitify_array_get(lexer->attrs, i);
-    if (attr && (attr->key.len == name_len) &&
-        !strncasecmp(name, buf + attr->key.offset - starting_offset, name_len)) {
-      return attr;
-    }
-  }
-  return NULL;
-}
 
 static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf, size_t length,
   size_t starting_offset, const char *attr_name)
 {
+  bool modified = false;
   jitify_html_state_t *state = lexer->state;
-  state->last_token_type = lexer->token_type;
-  jitify_attr_t *attr = get_attr_by_name(lexer, buf, starting_offset, attr_name);
-  if (attr) {
-    /* This is where URI rewriting will go */
+  
+  /* If we're minifying this HTML document, set
+   * modified=true to force the tag to be
+   * reconstructed with minimal spacing.
+   */
+  if (lexer->remove_space) {
+    modified = true;
   }
-  if (jitify_write(lexer, buf, length) < 0) {
-     return JITIFY_ERROR;
-   }
-   else {
-     return JITIFY_OK;
-   } 
+  
+  /* TODO: Add link rewriting here */
+  
+  if (!modified)
+  {
+    /* No modification needed; send the full token as-is */
+    if (jitify_write(lexer, buf, length) < 0) {
+      return JITIFY_ERROR;
+    }
+    else {
+      return JITIFY_OK;
+    }
+  }
+  else {
+    size_t i, num_attrs;
+    /* Reconstruct the tag based on the current attr values */
+    jitify_lexer_resolve_attrs(lexer, buf, starting_offset);
+    jitify_write(lexer, "<", 1);
+    if (state->leading_slash) {
+      jitify_write(lexer, "/", 1);
+    }
+    jitify_write(lexer, buf + state->tagname_offset - starting_offset, state->tagname_len);
+    num_attrs = jitify_array_length(lexer->attrs);
+    for (i = 0; i < num_attrs; i++) {
+      jitify_attr_t *attr = jitify_array_get(lexer->attrs, i);
+      jitify_write(lexer, " ", 1);
+      if (attr->key.len) {
+        jitify_write(lexer, attr->key.data.buf, attr->key.len);
+        jitify_write(lexer, "=", 1);
+      }
+      if (attr->value.len) {
+        if (attr->quote) {
+          jitify_write(lexer, &(attr->quote), 1);
+        }
+        jitify_write(lexer, attr->value.data.buf, attr->value.len);
+        if (attr->quote) {
+          jitify_write(lexer, &(attr->quote), 1);
+        }
+      }
+    }
+    if (state->trailing_slash) {
+      jitify_write(lexer, "/", 1);
+    }
+    jitify_write(lexer, ">", 1);
+    return JITIFY_OK;
+  }
 }
 
 static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, size_t length, size_t starting_offset)
@@ -88,6 +114,9 @@ static jitify_status_t html_transform(jitify_lexer_t *lexer, const void *data, s
         return JITIFY_ERROR;
       }
     }
+  }
+  else if (lexer->token_type == jitify_type_html_tag) {
+    return html_tag_transform(lexer, buf, length, starting_offset, "?");
   }
   else if (lexer->token_type == jitify_type_html_anchor_open) {
     return html_tag_transform(lexer, buf, length, starting_offset, "href");

@@ -11,7 +11,7 @@
   include jitify_common "jitify_lexer_common.rl";
   include css_grammar   "jitify_css_lexer_common.rl";
   
-  tag_close = space* '/'? '>';
+  tag_close = space* '/'? @{ state->trailing_slash = true; } '>';
 
   name_char = (alnum | '-' | '_' | '.' | ':');
   name_start_char = (alpha | '_');
@@ -79,23 +79,20 @@
   script_close = '</' /script/i '>';
 
   script = (
-    /script/i %{ TOKEN_TYPE(jitify_type_html_script_open); }
+    /script/i %{ TOKEN_TYPE(jitify_type_html_tag); }
       (space+ attr)* tag_close %{ TOKEN_END; RESET_ATTRS; TOKEN_START(jitify_token_type_misc); }
       (any* - ( any* script_close any* ) ) script_close
   );
-
-  anchor = /a/i %{ TOKEN_TYPE(jitify_type_html_anchor_open); } (space+ attr)* tag_close;
-  
-  img = /img/i %{ TOKEN_TYPE(jitify_type_html_img_open); } (space+ attr)* tag_close;
-
-  link = /link/i %{ TOKEN_TYPE(jitify_type_html_link_open); } (space+ attr)* tag_close;
 
   style = (
     /style/i >{ TOKEN_TYPE(jitify_token_type_misc); } (space+ unparsed_attr)* tag_close %{ TOKEN_END; }
     css_document? ( '</' /style/i '>' ) >{ TOKEN_TYPE(jitify_token_type_misc); } %{ TOKEN_END; }
   );
   
-  misc_tag = '/'? name >{ TOKEN_TYPE(jitify_token_type_misc); } (space+ unparsed_attr)* tag_close;
+  misc_tag = '/'? @{ state->leading_slash = true; }
+    name >{ TOKEN_TYPE(jitify_type_html_tag); state->tagname_offset = CURRENT_OFFSET(p); }
+         %{ state->tagname_len = CURRENT_OFFSET(p) - state->tagname_offset; }
+    (space+ attr)* tag_close;
 
   _xml_tag_close = '?>';
   
@@ -105,15 +102,9 @@
   element = (
     script
     |
-    anchor
-    |
-    img
-    |
     preformatted_open | preformatted_close
     |
     xml_tag
-    |
-    link
     |
     style
     |
@@ -135,7 +126,8 @@
   main := (
     byte_order_mark?
     (
-      ( '<' >{ TOKEN_START(jitify_token_type_misc); } element %{ TOKEN_END; RESET_ATTRS; } )
+      ( '<' >{ TOKEN_START(jitify_token_type_misc); state->leading_slash = false; state->trailing_slash = false; }
+        element %{ TOKEN_END; RESET_ATTRS; } )
       |
       html_space
       |

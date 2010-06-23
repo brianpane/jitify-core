@@ -17,7 +17,10 @@ typedef struct {
 } jitify_str_t;
 
 typedef struct {
-  size_t offset; /* Relative to start of entire document */
+  union {
+    size_t offset; /* Relative to start of entire document */
+    const char *buf;
+  } data;
   size_t len;
 } jitify_str_ref_t;
 
@@ -77,6 +80,7 @@ struct jitify_lexer_s {
   
   jitify_array_t *attrs; /* Array of jitify_attr_t* */
   jitify_attr_t *current_attr; /* Points into attrs or is NULL */
+  bool attrs_resolved; /* whether the keys and values in attrs have been converted from offsets to char* */
   
   /* The following fields support Ragel-generated parsers */
   int cs;
@@ -86,6 +90,8 @@ struct jitify_lexer_s {
 extern jitify_lexer_t *jitify_lexer_create(jitify_pool_t *pool, jitify_output_stream_t *out);
 
 extern void jitify_transform_with_setaside(jitify_lexer_t *lexer, const char *p);
+
+extern void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, size_t starting_offset);
 
 #define CURRENT_OFFSET(ptr)                      \
   (lexer->starting_offset + (ptr - lexer->buf))
@@ -123,7 +129,7 @@ extern void jitify_transform_with_setaside(jitify_lexer_t *lexer, const char *p)
   lexer->subtoken_offset = CURRENT_OFFSET(p)
 
 #define ATTR_KEY_END                             \
-  lexer->current_attr->key.offset =              \
+  lexer->current_attr->key.data.offset =         \
     lexer->subtoken_offset;                      \
   lexer->current_attr->key.len =                 \
     CURRENT_OFFSET(p) - lexer->subtoken_offset
@@ -133,14 +139,15 @@ extern void jitify_transform_with_setaside(jitify_lexer_t *lexer, const char *p)
   lexer->subtoken_offset = CURRENT_OFFSET(p)
 
 #define ATTR_VALUE_END                           \
-  lexer->current_attr->value.offset =            \
+  lexer->current_attr->value.data.offset =       \
     lexer->subtoken_offset;                      \
   lexer->current_attr->value.len =               \
     CURRENT_OFFSET(p) - lexer->subtoken_offset;  \
   lexer->current_attr = NULL
 
 #define RESET_ATTRS                              \
-  jitify_array_clear(lexer->attrs)
+  jitify_array_clear(lexer->attrs);              \
+  lexer->attrs_resolved = false
 
 #endif /* JITIFY_INTERNAL */
 
