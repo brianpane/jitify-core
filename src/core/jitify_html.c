@@ -18,6 +18,7 @@ static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf
 {
   bool modified = false;
   jitify_html_state_t *state = lexer->state;
+  size_t num_attrs;
   
   /* If we're minifying this HTML document, set
    * modified=true to force the tag to be
@@ -25,6 +26,33 @@ static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf
    */
   if (lexer->remove_space) {
     modified = true;
+  }
+  
+  jitify_lexer_resolve_attrs(lexer, buf, starting_offset);
+  num_attrs = jitify_array_length(lexer->attrs);
+  if (num_attrs) {
+    jitify_attr_t *attr = jitify_array_get(lexer->attrs, 0);
+    switch (attr->key.len) {
+      case 3:
+        if (!strncasecmp(attr->key.data.buf, "pre", 3)) {
+          if (state->leading_slash) {
+            state->nominify_depth--;
+          }
+          else {
+            state->nominify_depth++;
+          }
+        }
+        break;
+      case 8:
+        if (!strncasecmp(attr->key.data.buf, "textarea", 8)) {
+          if (state->leading_slash) {
+            state->nominify_depth--;
+          }
+          else {
+            state->nominify_depth++;
+          }
+        }
+    }
   }
   
   /* TODO: Add link rewriting here */
@@ -40,29 +68,29 @@ static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf
     }
   }
   else {
-    size_t i, num_attrs;
+    size_t i;
     /* Reconstruct the tag based on the current attr values */
-    jitify_lexer_resolve_attrs(lexer, buf, starting_offset);
     jitify_write(lexer, "<", 1);
     if (state->leading_slash) {
       jitify_write(lexer, "/", 1);
     }
-    jitify_write(lexer, buf + state->tagname_offset - starting_offset, state->tagname_len);
     num_attrs = jitify_array_length(lexer->attrs);
     for (i = 0; i < num_attrs; i++) {
       jitify_attr_t *attr = jitify_array_get(lexer->attrs, i);
-      jitify_write(lexer, " ", 1);
       if (attr->key.len) {
-        jitify_write(lexer, attr->key.data.buf, attr->key.len);
-        jitify_write(lexer, "=", 1);
-      }
-      if (attr->value.len) {
-        if (attr->quote) {
-          jitify_write(lexer, &(attr->quote), 1);
+        if (i) {
+          jitify_write(lexer, " ", 1);
         }
-        jitify_write(lexer, attr->value.data.buf, attr->value.len);
-        if (attr->quote) {
-          jitify_write(lexer, &(attr->quote), 1);
+        jitify_write(lexer, attr->key.data.buf, attr->key.len);
+        if (attr->value.len) {
+          jitify_write(lexer, "=", 1);
+          if (attr->quote) {
+            jitify_write(lexer, &(attr->quote), 1);
+          }
+          jitify_write(lexer, attr->value.data.buf, attr->value.len);
+          if (attr->quote) {
+            jitify_write(lexer, &(attr->quote), 1);
+          }
         }
       }
     }

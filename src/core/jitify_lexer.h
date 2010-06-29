@@ -112,7 +112,8 @@ extern void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, s
       p - lexer->token_start,                    \
       CURRENT_OFFSET(lexer->token_start));       \
   }                                              \
-  TOKEN_START(jitify_token_type_misc)
+  TOKEN_START(jitify_token_type_misc);           \
+  lexer->current_attr = NULL
 
 #define ADD_ATTR                                 \
   if (!lexer->current_attr) {                    \
@@ -121,7 +122,6 @@ extern void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, s
   }
 
 #define ATTR_SET_QUOTE(q)                        \
-  ADD_ATTR;                                      \
   lexer->current_attr->quote = q
 
 #define ATTR_KEY_START                           \
@@ -138,12 +138,15 @@ extern void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, s
   ADD_ATTR;                                      \
   lexer->subtoken_offset = CURRENT_OFFSET(p)
 
+#define ATTR_END                                 \
+  lexer->current_attr = NULL
+
 #define ATTR_VALUE_END                           \
   lexer->current_attr->value.data.offset =       \
     lexer->subtoken_offset;                      \
   lexer->current_attr->value.len =               \
     CURRENT_OFFSET(p) - lexer->subtoken_offset;  \
-  lexer->current_attr = NULL
+  ATTR_END
 
 #define RESET_ATTRS                              \
   jitify_array_clear(lexer->attrs);              \

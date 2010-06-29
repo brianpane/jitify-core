@@ -11,11 +11,11 @@
   include jitify_common "jitify_lexer_common.rl";
   include css_grammar   "jitify_css_lexer_common.rl";
   
-  tag_close = space* '/'? @{ state->trailing_slash = true; } '>';
+  tag_close = '/'? @{ state->trailing_slash = true; } '>';
 
   name_char = (alnum | '-' | '_' | '.' | ':');
   name_start_char = (alpha | '_');
-  name = name_start_char name_char*;
+  name = name_start_char name_char**;
 
   action leave_content {
     TOKEN_END;
@@ -33,18 +33,25 @@
   );
 
   attr_name = (
-    alpha (alnum | '-' | '_' | ':')*
-  ) >{ ATTR_KEY_START; } %{ ATTR_KEY_END; };
+    alpha (alnum | '-' | '_' | ':')**
+  )
+    >{ ATTR_KEY_START; }
+    %{ ATTR_KEY_END; };
 
-  unquoted_attr_value = ( any - ( space | '>' | '\\' | '"' | "'" ) )+
-    >{ ATTR_VALUE_START; ATTR_SET_QUOTE(0); } %{ ATTR_VALUE_END; };
+  unquoted_attr_char = ( any - ( space | '>' | '\\' | '"' | "'" ) );
+  unquoted_attr_value = (unquoted_attr_char unquoted_attr_char**)
+    >{ ATTR_VALUE_START;
+       ATTR_SET_QUOTE(0); }
+    %{ ATTR_VALUE_END; };
   
   single_quoted_attr_value = "'" @{ ATTR_SET_QUOTE('\''); }
   ( /[^']*/ ) >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; }
   "'";
   
   double_quoted_attr_value = '"' @{ ATTR_SET_QUOTE('"'); }
-  ( /[^"]*/ ) >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; }
+  ( /[^"]*/ )
+    >{ ATTR_VALUE_START; }
+    %{ ATTR_VALUE_END; }
   '"';
   
   attr_value = (
@@ -53,10 +60,6 @@
     double_quoted_attr_value
   );
   
-  attr = (
-    (attr_name space* '=' space* attr_value)
-  );
-
   unparsed_attr_name = (
     alpha (alnum | '-' | '_' | ':')*
   );
@@ -78,21 +81,39 @@
   
   script_close = '</' /script/i '>';
 
+  tag_attrs = (space+ %{ ATTR_END;} ( attr_name space* '=' space* attr_value <: space* )*);
+  
   script = (
-    /script/i %{ TOKEN_TYPE(jitify_type_html_tag); }
-      (space+ attr)* tag_close %{ TOKEN_END; RESET_ATTRS; TOKEN_START(jitify_token_type_misc); }
+    /script/i
+      >{ ATTR_KEY_START; }
+      %{ TOKEN_TYPE(jitify_type_html_tag);
+         ATTR_KEY_END; }
+    tag_attrs? tag_close
+      %{ TOKEN_END;
+         TOKEN_START(jitify_token_type_misc); }
       (any* - ( any* script_close any* ) ) script_close
   );
 
   style = (
-    /style/i >{ TOKEN_TYPE(jitify_token_type_misc); } (space+ unparsed_attr)* tag_close %{ TOKEN_END; }
-    css_document? ( '</' /style/i '>' ) >{ TOKEN_TYPE(jitify_token_type_misc); } %{ TOKEN_END; }
+    /style/i
+      >{ ATTR_KEY_START; }
+      %{ TOKEN_TYPE(jitify_type_html_tag);
+         ATTR_KEY_END; }
+    tag_attrs? tag_close
+      %{ TOKEN_END; }
+    css_document? ( '</' /style/i '>' )
+      >{ TOKEN_TYPE(jitify_token_type_misc); }
+      %{ TOKEN_END; }
   );
   
-  misc_tag = '/'? @{ state->leading_slash = true; }
-    name >{ TOKEN_TYPE(jitify_type_html_tag); state->tagname_offset = CURRENT_OFFSET(p); }
-         %{ state->tagname_len = CURRENT_OFFSET(p) - state->tagname_offset; }
-    (space+ attr)* tag_close;
+  misc_tag = (
+    '/'?
+      @{ state->leading_slash = true; }
+    attr_name
+    tag_attrs?
+    tag_close
+  )
+    >{ TOKEN_TYPE(jitify_type_html_tag); };
 
   _xml_tag_close = '?>';
   
@@ -101,8 +122,6 @@
     
   element = (
     script
-    |
-    preformatted_open | preformatted_close
     |
     xml_tag
     |
@@ -116,18 +135,28 @@
   html_space = (
     ( space - ( '\r' | '\n' ) ) |
     ( '\r' | '\n' ) @{ state->space_contains_newlines = true; }
-  )+ >{ TOKEN_START(jitify_type_html_space); state->space_contains_newlines = false; } %{ TOKEN_END; };
+  )+
+    >{ TOKEN_START(jitify_type_html_space);
+       state->space_contains_newlines = false; }
+    %{ TOKEN_END; };
   
   content = (
     any - (space | '<' )
-  )+ >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
+  )+
+    >{ TOKEN_START(jitify_token_type_misc); }
+    %{ TOKEN_END; };
   
-  one = any >{ TOKEN_START(jitify_token_type_misc); } %{ TOKEN_END; };
   main := (
     byte_order_mark?
     (
-      ( '<' >{ TOKEN_START(jitify_token_type_misc); state->leading_slash = false; state->trailing_slash = false; }
-        element %{ TOKEN_END; RESET_ATTRS; } )
+      ( '<'
+          >{ TOKEN_START(jitify_token_type_misc);
+            state->leading_slash = false;
+            state->trailing_slash = false; }
+        element
+          %{ TOKEN_END;
+             RESET_ATTRS; }
+      )
       |
       html_space
       |
