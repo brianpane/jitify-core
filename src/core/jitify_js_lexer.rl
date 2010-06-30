@@ -13,7 +13,7 @@
   js_space = /[ \t]/+
     >{ TOKEN_START(jitify_type_js_whitespace); } %{ TOKEN_END; };
   
-  _line_end = /[\n\r]/;
+  _line_end = ( /\r/? /\n/ );
   
   js_line_end = _line_end+
     >{ TOKEN_START(jitify_type_js_newline); } %{ TOKEN_END; };
@@ -127,6 +127,7 @@
          case '{':
          case '}':
          case ';':
+         case ':':
          case '\r':
          case '\n':
            could_be_regex = true;
