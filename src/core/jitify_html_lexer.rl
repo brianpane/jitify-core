@@ -81,7 +81,7 @@
   
   script_close = '</' /script/i '>';
 
-  tag_attrs = (space+ %{ ATTR_END;} ( attr_name space* '=' space* attr_value <: space* )*);
+  tag_attrs = (space+ %{ ATTR_END;} ( attr_name <: space* ( '=' space* attr_value <: space*)? )*);
   
   script = (
     /script/i
