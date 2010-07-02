@@ -120,21 +120,9 @@
     exclamation_point optional_space_or_comment? important
   );
 
-  single_quoted_uri = "'" @{ ATTR_SET_QUOTE('\''); }
-  ( [^'\\] | /\\./)* >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; }
-  "'";
-  
-  double_quoted_uri = '"' @{ ATTR_SET_QUOTE('"'); }
-  ( [^"\\] | /\\./ )* >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; }
-  '"';
-  
-  unquoted_uri = ( empty |
-    ( ( any - ( space | '"' | "'" | ')' | ',' ) )  ( any - ( space | ')' | ',' ) )* )
-    ) >{ ATTR_VALUE_START; } %{ ATTR_VALUE_END; };
-
   _misc_term = ( any - ( space | '(' | ')' | ';' | '}' | '"' | "'" | ',' | '*' ) )+;
   
-  _misc_function_arg = ( any - ( space | '(' | ')' | ';' | '}' | '"' | "'" | ',' | '*' | '=' ) )+;
+  _misc_function_arg = ( any - ( space | '(' | ')' | '}' | '"' | "'" | ',' | '*' ) )+;
   
   base_term = (
     _single_quoted | _double_quoted | _misc_term
