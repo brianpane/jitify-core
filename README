@@ -1,8 +1,9 @@
-jitify-core v0.9
+jitify-core v0.9.1
 
 This distribution contains the source code for:
   Jitify Tools
   Jitify for Apache
+  Jitify for nginx
 
 For compilation and installation instructions, please see the INSTALL file.
 

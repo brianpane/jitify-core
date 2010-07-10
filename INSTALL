@@ -1,8 +1,9 @@
 Sorry, there isn't a configure script for jitify-core yet.
 
-There are two targets you can build from jitify-core:
+There are three targets you can build from jitify-core:
   1. Jitify Tools, the command-line application
   2. Jitify for Apache, the module for Apache 2.2
+  3. Jitify for nginx, the module for nginx-0.8
 
 To build Jitify Tools:
   1. cd to the root of the jitify-core source distribution
@@ -21,10 +22,29 @@ To build Jitify for Apache:
   4. The Jitify for Apache dynamically loadable module is
      now at build/mod_jitify.so
   5. cp build/mod_jitify.so /wherever-your-apache-installation-is/modules
-  6. Add these line to your Apache httpd.conf:
+  6. Add these lines to your Apache httpd.conf:
        LoadModule jitify_module modules/mod_jitify.so
        <IfModule jitify_module>
          # Enable the minification transform
          Minify On
        </IfModule>
   7. Restart Apache
+
+To build Jitify for nginx:
+  1. If you don't already the source code for nginx 0.8.x,
+     download and unpack it.
+  2. In your nginx-0.8.x source directory, run the configure script:
+       CFLAGS="-O3 -g" ./configure \
+         --prefix=/directory/where/you/want/to/install/nginx \
+         --add-module=/dir/containing/jitify-core/jitify-core-version/src/nginx \
+         any additional nginx config options you need...
+     The setting of those CFLAGS arguments is optional. "-O3" enables
+     a relatively thorough level of optimization in the compiler,
+     and "-g" adds debugging metadata to make the resulting nginx
+     program easier to troubleshoot with gdb.
+  3. Still within the nginx-0.8.x source directory,
+       make
+       sudo make install
+  4. Edit your nginx.conf to add these lines inside the "http { ... }" block:
+       minify on;
+  5. Restart nginx.

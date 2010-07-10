@@ -1,0 +1,19 @@
+Changes with jitify-core 0.9.1             08 Jul 2010
+
+    *) Feature: mod_jitify for nginx 0.8.x
+
+    *) Bugfix: regular expressions following ':' in JavaScript
+       were not parsed properly.
+
+    *) Change: refactored HTML lexical grammar to help support
+       link rewriting in the future.
+
+Changes with jitify-core 0.9.0             12 Jun 2010
+
+    *) First public version
+
+    *) Feature: minification of CSS, HTML, and JS
+
+    *) Feature: jitify command-line tool
+
+    *) Feature: mod_jitify for Apache 2.2.x
