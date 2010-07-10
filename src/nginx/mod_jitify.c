@@ -56,9 +56,15 @@ static ngx_int_t jitify_header_filter(ngx_http_request_t *r)
       
       r->main_filter_need_in_memory = 1;
     }
+    else {
+      ngx_log_error(NGX_LOG_DEBUG, log, 0, "no lexer for uri=%V content-type=%V",
+                    &(r->uri), &(r->headers_out.content_type));
+    }
   }
   return jitify_next_header_filter(r);
 }
+
+#define DEFAULT_ERR_LEN 80
 
 static ngx_int_t jitify_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
 {
@@ -81,10 +87,22 @@ static ngx_int_t jitify_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
     ngx_buf_t *buf = in->buf;
     if (buf->last_buf) {
       send_eof = 1;
-      jitify_lexer_scan(jctx->lexer, buf->pos, buf->last - buf->pos, true);
     }
-    else if (buf->last > buf->pos) {
-      jitify_lexer_scan(jctx->lexer, buf->pos, buf->last - buf->pos, false);
+    if (buf->last_buf || (buf->last > buf->pos)) {
+      const char *err;
+      jitify_lexer_scan(jctx->lexer, buf->pos, buf->last - buf->pos, buf->last_buf);
+      err = jitify_lexer_get_err(jctx->lexer);
+      if (err) {
+        char err_buf[DEFAULT_ERR_LEN + 1];
+        size_t err_len = DEFAULT_ERR_LEN;
+        size_t max_err_len = (const char*)(buf->last) - err;
+        if (err_len > max_err_len) {
+          err_len = max_err_len;
+        }
+        memcpy(err_buf, err, err_len);
+        err_buf[err_len] = 0;
+        ngx_log_error(NGX_LOG_WARN, log, 0, "parse error in %V near '%s', entering failsafe mode", &(r->uri), err_buf);
+      }
     }
     if (buf->flush) {
       send_flush = 1;
@@ -98,6 +116,13 @@ static ngx_int_t jitify_body_filter(ngx_http_request_t *r, ngx_chain_t *in)
   }
 
   if (send_eof) {
+    size_t processing_time_in_usec = jitify_lexer_get_processing_time(jctx->lexer);
+    size_t bytes_in = jitify_lexer_get_bytes_in(jctx->lexer);
+    size_t bytes_out = jitify_lexer_get_bytes_out(jctx->lexer);
+    ngx_log_error(NGX_LOG_INFO, log, 0, "Jitify stats: bytes_in=%l bytes_out=%l, nsec/byte=%l for %V",
+        (long)bytes_in, (long)bytes_out,
+        (long)(bytes_in ? processing_time_in_usec * 1000 / bytes_in : 0),
+        &(r->uri));
     jitify_nginx_add_eof(&out);
   }
   if (send_flush && out.last) {
