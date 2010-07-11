@@ -72,5 +72,5 @@ build/mod_jitify.so:	$(APACHE_SRCS)
 
 clean:
 	-rm -rf build/*
-	-find src -name '*.o' -o -name '*.lo' -o -name '*.slo' -exec rm -f {} \;
+	-find src \( -name '*.o' -o -name '*.lo' -o -name '*.slo' \) -exec rm -f {} \;
 	-find src -name '.libs' -exec rm -rf {} \;
