@@ -1,7 +1,7 @@
 #define JITIFY_INTERNAL
 #include "jitify_css.h"
 
-extern int jitify_css_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof);
+extern int jitify_css_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof);
 
 jitify_token_type_t jitify_type_css_selector = "CSS selector";
 jitify_token_type_t jitify_type_css_term = "CSS term";

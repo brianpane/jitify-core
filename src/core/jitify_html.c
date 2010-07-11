@@ -11,12 +11,12 @@ jitify_token_type_t jitify_type_html_script_open = "HTML script";
 jitify_token_type_t jitify_type_html_space = "HTML space";
 jitify_token_type_t jitify_type_html_tag = "HTML tag";
 
-extern int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof);
+extern int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof);
 
 static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf, size_t length,
   size_t starting_offset, const char *attr_name)
 {
-  bool modified = false;
+  int modified = 0;
   jitify_html_state_t *state = lexer->state;
   size_t num_attrs;
   
@@ -25,7 +25,7 @@ static jitify_status_t html_tag_transform(jitify_lexer_t *lexer, const char *buf
    * reconstructed with minimal spacing.
    */
   if (lexer->remove_space) {
-    modified = true;
+    modified = 1;
   }
   
   jitify_lexer_resolve_attrs(lexer, buf, starting_offset);
@@ -177,8 +177,8 @@ jitify_lexer_t *jitify_html_lexer_create(jitify_pool_t *pool, jitify_output_stre
 {
   jitify_lexer_t *lexer = jitify_lexer_create(pool, out);
   jitify_html_state_t *state = jitify_calloc(pool, sizeof(*state));
-  state->conditional_comment = false;
-  state->space_contains_newlines = false;
+  state->conditional_comment = 0;
+  state->space_contains_newlines = 0;
   lexer->state = state;
   lexer->scan = jitify_html_scan;
   lexer->transform = html_transform;

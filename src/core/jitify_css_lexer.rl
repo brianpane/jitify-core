@@ -15,14 +15,14 @@
   write data;
 }%%
 
-int jitify_css_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof)
+int jitify_css_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof)
 {
   const char *p = data, *pe = data + length;
   const char *eof = is_eof ? pe : NULL;
   jitify_css_state_t *state = lexer->state;
   if (!lexer->initialized) {
     %% write init;
-    lexer->initialized = true;
+    lexer->initialized = 1;
   }
   %% write exec;
   return p - (const char *)data;

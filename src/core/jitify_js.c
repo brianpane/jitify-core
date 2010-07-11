@@ -6,7 +6,7 @@
  * Minification logic based on the algorithms of JSMin: http://www.crockford.com/javascript/jsmin.html
  */
 
-extern int jitify_js_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof);
+extern int jitify_js_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof);
 
 jitify_token_type_t jitify_type_js_whitespace = "JS space";
 jitify_token_type_t jitify_type_js_newline = "JS newline";
@@ -134,7 +134,7 @@ jitify_lexer_t *jitify_js_lexer_create(jitify_pool_t *pool, jitify_output_stream
   jitify_js_state_t *state = jitify_calloc(pool, sizeof(*state));
   state->last_written = '\n';
   state->pending = 0;
-  state->html_comment = false;
+  state->html_comment = 0;
   lexer->state = state;
   lexer->scan = jitify_js_scan;
   lexer->transform = js_transform;

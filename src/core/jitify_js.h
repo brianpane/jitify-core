@@ -13,8 +13,8 @@ extern jitify_token_type_t jitify_type_js_line_comment;
 typedef struct {
   char last_written;
   char pending;
-  bool html_comment;
-  bool slash_elem_complete;
+  int html_comment;
+  int slash_elem_complete;
 } jitify_js_state_t;
 
 #endif /* JITIFY_INTERNAL */

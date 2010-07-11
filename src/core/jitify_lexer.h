@@ -27,8 +27,8 @@ typedef struct {
 typedef struct {
   jitify_str_ref_t key;
   jitify_str_ref_t value;
-  bool key_setaside;
-  bool value_setaside;
+  int key_setaside;
+  int value_setaside;
   char quote;
 } jitify_attr_t;
 
@@ -42,12 +42,12 @@ struct jitify_lexer_s {
   jitify_pool_t *pool;
   jitify_output_stream_t *out;
 
-  bool initialized;
-  bool failsafe_mode;
+  int initialized;
+  int failsafe_mode;
 
   /* Minification rules */
-  bool remove_space;
-  bool remove_comments;
+  int remove_space;
+  int remove_comments;
   
   /* Link rewriting rules */
   jitify_cdnify_rule_t *cdnify_rules;
@@ -55,13 +55,13 @@ struct jitify_lexer_s {
   size_t cdnify_rules_size;  /* Max @ of items that cdnify_rules is sized to hold */
   
   jitify_status_t (*transform)(jitify_lexer_t *lexer, const void *data, size_t length, size_t offset);
-  int (*scan)(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof);
+  int (*scan)(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof);
   void (*cleanup)(jitify_lexer_t *lexer);
   
   char *setaside;
   size_t setaside_max;
   size_t setaside_len;
-  bool setaside_overflow; /* True iff a cross-buffer token exceeded setaside_max */
+  int setaside_overflow; /* True iff a cross-buffer token exceeded setaside_max */
   size_t setaside_offset; /* Offset from start of document of 1st byte of setaside */
   
   jitify_token_type_t token_type;
@@ -80,7 +80,7 @@ struct jitify_lexer_s {
   
   jitify_array_t *attrs; /* Array of jitify_attr_t* */
   jitify_attr_t *current_attr; /* Points into attrs or is NULL */
-  bool attrs_resolved; /* whether the keys and values in attrs have been converted from offsets to char* */
+  int attrs_resolved; /* whether the keys and values in attrs have been converted from offsets to char* */
   
   /* The following fields support Ragel-generated parsers */
   int cs;
@@ -150,7 +150,7 @@ extern void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, s
 
 #define RESET_ATTRS                              \
   jitify_array_clear(lexer->attrs);              \
-  lexer->attrs_resolved = false
+  lexer->attrs_resolved = 0
 
 #endif /* JITIFY_INTERNAL */
 

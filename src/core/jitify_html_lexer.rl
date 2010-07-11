@@ -11,7 +11,7 @@
   include jitify_common "jitify_lexer_common.rl";
   include css_grammar   "jitify_css_lexer_common.rl";
   
-  tag_close = '/'? @{ state->trailing_slash = true; } '>';
+  tag_close = '/'? @{ state->trailing_slash = 1; } '>';
 
   name_char = (alnum | '-' | '_' | '.' | ':');
   name_start_char = (alpha | '_');
@@ -23,7 +23,7 @@
 
   conditional_comment = '[if' %{ state->conditional_comment = 1; };
 
-  comment = '--' %{ TOKEN_TYPE(jitify_type_html_comment); state->conditional_comment = false; }
+  comment = '--' %{ TOKEN_TYPE(jitify_type_html_comment); state->conditional_comment = 0; }
     (any | conditional_comment)* :>> '-->' %{ TOKEN_END; };
 
   misc_directive = any* :>> '>';
@@ -108,7 +108,7 @@
   
   misc_tag = (
     '/'?
-      @{ state->leading_slash = true; }
+      @{ state->leading_slash = 1; }
     attr_name
     tag_attrs?
     tag_close
@@ -134,10 +134,10 @@
 
   html_space = (
     ( space - ( '\r' | '\n' ) ) |
-    ( '\r' | '\n' ) @{ state->space_contains_newlines = true; }
+    ( '\r' | '\n' ) @{ state->space_contains_newlines = 1; }
   )+
     >{ TOKEN_START(jitify_type_html_space);
-       state->space_contains_newlines = false; }
+       state->space_contains_newlines = 0; }
     %{ TOKEN_END; };
   
   content = (
@@ -151,8 +151,8 @@
     (
       ( '<'
           >{ TOKEN_START(jitify_token_type_misc);
-            state->leading_slash = false;
-            state->trailing_slash = false; }
+            state->leading_slash = 0;
+            state->trailing_slash = 0; }
         element
           %{ TOKEN_END;
              RESET_ATTRS; }
@@ -167,14 +167,14 @@
   write data;
 }%%
 
-int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, bool is_eof)
+int jitify_html_scan(jitify_lexer_t *lexer, const void *data, size_t length, int is_eof)
 {
   const char *p = data, *pe = data + length;
   const char *eof = is_eof ? pe : NULL;
   jitify_html_state_t *state = lexer->state;
   if (!lexer->initialized) {
     %% write init;
-    lexer->initialized = true;
+    lexer->initialized = 1;
   }
   %% write exec;
   return p - (const char *)data;

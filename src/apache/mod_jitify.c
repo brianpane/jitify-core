@@ -52,7 +52,7 @@ static jitify_filter_ctx_t *jitify_filter_init(ap_filter_t *f)
     ctx->lexer = jitify_lexer_for_content_type(f->r->content_type, pool, out);
     if (ctx->lexer) {
       ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "found lexer for content-type %s for %s", f->r->content_type, f->r->uri);
-      jitify_lexer_set_minify_rules(ctx->lexer, true, true);
+      jitify_lexer_set_minify_rules(ctx->lexer, 1, 1);
     }
     else {
       ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "no lexer for content-type %s for %s", f->r->content_type, f->r->uri);
@@ -96,7 +96,7 @@ static apr_status_t jitify_filter(ap_filter_t *f, apr_bucket_brigade *bb)
     apr_table_unset(f->r->headers_out, "Content-Length");
     apr_table_unset(f->r->headers_out, "Last-modified");
     apr_table_unset(f->r->headers_out, "Accept-Ranges");
-    ctx->response_started = true;
+    ctx->response_started = 1;
   }
   out = apr_brigade_create(f->r->pool, f->c->bucket_alloc);
   ctx->out->state = out;
@@ -114,7 +114,7 @@ static apr_status_t jitify_filter(ap_filter_t *f, apr_bucket_brigade *bb)
     if (len > 0) {
       const char *err;
       ap_log_rerror(APLOG_MARK, APLOG_DEBUG, 0, f->r, "scanning %d bytes of %s", (int)len, f->r->uri);
-      jitify_lexer_scan(ctx->lexer, data, len, false);
+      jitify_lexer_scan(ctx->lexer, data, len, 0);
       err = jitify_lexer_get_err(ctx->lexer);
       if (err) {
         char err_buf[DEFAULT_ERR_LEN + 1];
@@ -136,7 +136,7 @@ static apr_status_t jitify_filter(ap_filter_t *f, apr_bucket_brigade *bb)
         (unsigned long)bytes_in, (unsigned long)bytes_out,
         (unsigned long)(bytes_in ? processing_time_in_usec * 1000 / bytes_in : 0),
         f->r->uri);
-      jitify_lexer_scan(ctx->lexer, NULL, 0, true);
+      jitify_lexer_scan(ctx->lexer, NULL, 0, 1);
       APR_BRIGADE_INSERT_TAIL(out, b);
     }
     else {

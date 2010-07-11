@@ -1,11 +1,20 @@
 #ifndef jitify_nginx_glue_h
 #define jitify_nginx_glue_h
 
-#include "jitify.h"
-
+/* It's important that these three includes, in this order, are
+ * the first things included within all compilation units.  Otherwise,
+ * on some platforms (e.g., Fedora 8 on 32-bit x86), off_t gets defined
+ * as a different-sized type in mod_jitify than in the nginx core.
+ * As key data structures like ngx_http_request_t contain off_t fields,
+ * the sizes and field offsets of these structures will be different
+ * between the nginx core and mod_jitify, resulting in inscrutable
+ * segfaults.
+ */
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
+
+#include "jitify.h"
 
 extern jitify_pool_t *jitify_nginx_pool_create(ngx_pool_t *pool);
 

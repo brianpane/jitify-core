@@ -1,7 +1,6 @@
 #ifndef jitify_h
 #define jitify_h
 
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -61,7 +60,7 @@ extern jitify_lexer_t *jitify_html_lexer_create(jitify_pool_t *pool, jitify_outp
 
 extern jitify_lexer_t *jitify_js_lexer_create(jitify_pool_t *pool, jitify_output_stream_t *out);
 
-extern void jitify_lexer_set_minify_rules(jitify_lexer_t *lexer, bool remove_space, bool remove_comments);
+extern void jitify_lexer_set_minify_rules(jitify_lexer_t *lexer, int remove_space, int remove_comments);
 
 extern void jitify_lexer_add_cdnify_rule(jitify_lexer_t *lexer, const char *prefix, const char *replacement);
 
@@ -80,7 +79,7 @@ extern int jitify_write(jitify_lexer_t *lexer, const void *data, size_t length);
 /**
  * @return number of bytes scanned, or a negative number if an unrecoverable error occurs
  */
-extern int jitify_lexer_scan(jitify_lexer_t *lexer, const void *data, size_t len, bool is_eof);
+extern int jitify_lexer_scan(jitify_lexer_t *lexer, const void *data, size_t len, int is_eof);
 
 extern void jitify_lexer_destroy(jitify_lexer_t *lexer);
 

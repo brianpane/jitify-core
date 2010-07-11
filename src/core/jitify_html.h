@@ -14,12 +14,12 @@ extern jitify_token_type_t jitify_type_html_space;
 extern jitify_token_type_t jitify_type_html_tag;
 
 typedef struct {
-  bool conditional_comment;
-  bool space_contains_newlines;
+  int conditional_comment;
+  int space_contains_newlines;
   size_t tagname_offset;
   size_t tagname_len;
-  bool leading_slash;
-  bool trailing_slash;
+  int leading_slash;
+  int trailing_slash;
   int nominify_depth;
   jitify_token_type_t last_token_type;
 } jitify_html_state_t;

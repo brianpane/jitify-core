@@ -84,7 +84,7 @@ static void process_file(int fd)
   block = jitify_malloc(p, block_size);
   while ((bytes_read = read(fd, block, block_size)) > 0) {
     const char *err;
-    jitify_lexer_scan(lexer, block, bytes_read, false);
+    jitify_lexer_scan(lexer, block, bytes_read, 0);
     err = jitify_lexer_get_err(lexer);
     if (err) {
       size_t err_len = 20;
@@ -100,7 +100,7 @@ static void process_file(int fd)
     }
   }
   if (bytes_read == 0) {
-    jitify_lexer_scan(lexer, "NULL", 0, true);
+    jitify_lexer_scan(lexer, "NULL", 0, 1);
   }
   bytes_in = jitify_lexer_get_bytes_in(lexer);
   bytes_out = jitify_lexer_get_bytes_out(lexer);

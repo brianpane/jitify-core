@@ -18,7 +18,7 @@ static int failsafe_send(jitify_lexer_t *lexer, const void *data, size_t len, si
   }
 }
 
-void jitify_lexer_set_minify_rules(jitify_lexer_t *lexer, bool remove_space, bool remove_comments)
+void jitify_lexer_set_minify_rules(jitify_lexer_t *lexer, int remove_space, int remove_comments)
 {
   lexer->remove_space = remove_space;
   lexer->remove_comments = remove_comments;
@@ -41,14 +41,14 @@ static void setaside_buffer(jitify_lexer_t *lexer, size_t remaining)
   lexer->setaside_len += remaining;
 }
 
-int jitify_lexer_scan(jitify_lexer_t *lexer, const void *data, size_t len, bool is_eof)
+int jitify_lexer_scan(jitify_lexer_t *lexer, const void *data, size_t len, int is_eof)
 {
   int rc;
   struct timeval start_time, end_time;
   long elapsed_usec;
   int bytes_scanned;
 
-  lexer->setaside_overflow = false;
+  lexer->setaside_overflow = 0;
   lexer->buf = data;
   lexer->err = NULL;
   gettimeofday(&start_time, NULL);
@@ -80,7 +80,7 @@ int jitify_lexer_scan(jitify_lexer_t *lexer, const void *data, size_t len, bool 
             }
             lexer->transform(lexer, lexer->token_start, remaining, CURRENT_OFFSET(lexer->token_start));
             /* TODO check transform return code */
-            lexer->setaside_overflow = true;
+            lexer->setaside_overflow = 1;
           }
         }
       }
@@ -125,10 +125,10 @@ jitify_lexer_t *jitify_lexer_create(jitify_pool_t *pool, jitify_output_stream_t 
   jitify_lexer_t *lexer = jitify_calloc(pool, sizeof(*lexer));
   lexer->pool = pool;
   lexer->out = out;
-  lexer->initialized = false;
-  lexer->failsafe_mode = false;
-  lexer->remove_space = false;
-  lexer->remove_comments = false;
+  lexer->initialized = 0;
+  lexer->failsafe_mode = 0;
+  lexer->remove_space = 0;
+  lexer->remove_comments = 0;
   lexer->setaside_max = DEFAULT_MAX_SETASIDE;
   lexer->token_type = jitify_token_type_misc;
   lexer->attrs = jitify_array_create(pool, sizeof(jitify_attr_t));
@@ -216,7 +216,7 @@ void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, size_t s
     return;
   }
   if (!lexer->attrs) {
-    lexer->attrs_resolved = true;
+    lexer->attrs_resolved = 1;
     return;
   }
   num_attrs = jitify_array_length(lexer->attrs);
@@ -229,7 +229,7 @@ void jitify_lexer_resolve_attrs(jitify_lexer_t *lexer, const char *buf, size_t s
       attr->value.data.buf = buf + attr->value.data.offset - starting_offset;
     }
   }
-  lexer->attrs_resolved = true;
+  lexer->attrs_resolved = 1;
 }
 
 void jitify_err_checkpoint(jitify_lexer_t *lexer)
