@@ -13,7 +13,7 @@ if [ $# -ne 1 ] ;then
 fi
 
 VERSION=$1
-STAGEDIR="jitify-$VERSION"
+STAGEDIR="jitify-core-$VERSION"
 mkdir -p $STAGEDIR
 rm -rf $STAGEDIR/*
 FILES="CHANGES INSTALL LICENSE README Makefile src"
