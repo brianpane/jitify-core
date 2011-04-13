@@ -3,7 +3,7 @@ Sorry, there isn't a configure script for jitify-core yet.
 There are three targets you can build from jitify-core:
   1. Jitify Tools, the command-line application
   2. Jitify for Apache, the module for Apache 2.2
-  3. Jitify for nginx, the module for nginx-0.8
+  3. Jitify for nginx, the module for nginx-1.0
 
 To build Jitify Tools:
   1. cd to the root of the jitify-core source distribution
@@ -31,9 +31,9 @@ To build Jitify for Apache:
   7. Restart Apache
 
 To build Jitify for nginx:
-  1. If you don't already the source code for nginx 0.8.x,
+  1. If you don't already the source code for nginx 1.0.x
      download and unpack it.
-  2. In your nginx-0.8.x source directory, run the configure script:
+  2. In your nginx-1.0.x source directory, run the configure script:
        CFLAGS="-O3 -g" ./configure \
          --prefix=/directory/where/you/want/to/install/nginx \
          --add-module=/dir/containing/jitify-core/jitify-core-version/src/nginx \
@@ -42,7 +42,7 @@ To build Jitify for nginx:
      a relatively thorough level of optimization in the compiler,
      and "-g" adds debugging metadata to make the resulting nginx
      program easier to troubleshoot with gdb.
-  3. Still within the nginx-0.8.x source directory,
+  3. Still within the nginx-1.0.x source directory,
        make
        sudo make install
   4. Edit your nginx.conf to add these lines inside the "http { ... }" block:

@@ -1,3 +1,7 @@
+Changes with jitify-core 0.9.2             12 Apr 2011
+
+    *) Minor fixes for compatibility with nginx-1.0
+
 Changes with jitify-core 0.9.1             08 Jul 2010
 
     *) Feature: mod_jitify for nginx 0.8.x
