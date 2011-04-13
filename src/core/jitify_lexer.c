@@ -88,7 +88,7 @@ int jitify_lexer_scan(jitify_lexer_t *lexer, const void *data, size_t len, int i
     }
     else {
       if (lexer->failsafe_mode) {
-        rc = failsafe_send(lexer, data + bytes_scanned, len - bytes_scanned, lexer->starting_offset + bytes_scanned);
+        rc = failsafe_send(lexer, (char *)data + bytes_scanned, len - bytes_scanned, lexer->starting_offset + bytes_scanned);
         bytes_scanned = len;
       }
       else {
