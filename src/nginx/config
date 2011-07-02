@@ -8,7 +8,7 @@ ngx_addon_name=mod_jitify_module
 HTTP_FILTER_MODULES=`echo $HTTP_FILTER_MODULES | sed -e 's/ngx_http_postpone_filter_module/jitify_module ngx_http_postpone_filter_module/'`
 
 for MODULE_SOURCE_FILE in `find $ngx_addon_dir $ngx_addon_dir/../core -type f -name "*.c"` ;do
-  NGX_ADDON_SRCS+=" $MODULE_SOURCE_FILE"
+  NGX_ADDON_SRCS="$NGX_ADDON_SRCS $MODULE_SOURCE_FILE"
 done
 
 echo "adding mod_jitify, core modules are:"
