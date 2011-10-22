@@ -4,6 +4,7 @@
 #include <http_log.h>
 #include <http_request.h>
 #include <apr_strings.h>
+#include <stdbool.h>
 
 #define JITIFY_INTERNAL
 #include "jitify_apache_glue.h"
